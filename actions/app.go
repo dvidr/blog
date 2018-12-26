@@ -58,7 +58,22 @@ func App() *buffalo.App {
 		// Setup and use translations:
 		app.Use(translations())
 
+		app.Use(SetCurrentUser)
+
 		app.GET("/", HomeHandler)
+
+		auth := app.Group("/users")
+		auth.GET("/register", UsersRegisterGet)
+		auth.POST("/register", UsersRegisterPost)
+		auth.GET("/login", UsersLoginGet)
+		auth.POST("/login", UsersLoginPost)
+		auth.GET("/logout", UsersLogout)
+
+		postGroup := app.Group("/posts")
+		postGroup.GET("/index", PostsIndex)
+		postGroup.GET("/create", AdminRequired(PostsCreateGet))
+		postGroup.POST("/create", AdminRequired(PostsCreatePost))
+		postGroup.GET("/detail/{pid}", PostsDetail)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
