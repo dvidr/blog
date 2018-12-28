@@ -32,4 +32,37 @@ We recommend you heading over to [http://gobuffalo.io](http://gobuffalo.io) and 
 
 Good luck!
 
+## To start up the dev env do the following
+
+```bash
+docker run -p 5432:5432 --name pg_dev -e POSTGRES_PASSWORD=postgres -d postgres
+
+# This utilzes psql from a docker container that links to the above.
+docker run -it --rm --link pg_dev:postgres postgres psql -h postgres -U postgres
+
+# if buffalo is install run the following
+buffalo db create -a
+
+# apply migrations
+buffalo db migrate up
+
+# see status of migrations
+buffalo db migrate status
+
+# start dev server
+buffalo dev
+
+# See routes
+buffalo routes
+```
+
+Create a user using the register link.
+
+Update your user to be an admin
+
+```postgresql
+postgres=# \c blog_development
+blog_development=# update users set admin='t' where username='dread';
+UPDATE 1
+```
 [Powered by Buffalo](http://gobuffalo.io)

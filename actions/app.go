@@ -74,6 +74,12 @@ func App() *buffalo.App {
 		postGroup.GET("/create", AdminRequired(PostsCreateGet))
 		postGroup.POST("/create", AdminRequired(PostsCreatePost))
 		postGroup.GET("/detail/{pid}", PostsDetail)
+		postGroup.GET("/edit/{pid}", AdminRequired(PostsEditGet))
+		postGroup.POST("/edit/{pid}", AdminRequired(PostsEditPost))
+		postGroup.GET("/delete/{pid}", AdminRequired(PostsDelete))
+
+		commentsGroup := app.Group("/comments")
+		commentsGroup.POST("/create/{pid}", CommentsCreatePost)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}

@@ -57,17 +57,54 @@ func PostsCreatePost(c buffalo.Context) error {
 	return c.Redirect(302, "/")
 }
 
-// PostsEdit default implementation.
-func PostsEdit(c buffalo.Context) error {
+// PostsEditGet displays a form to edit the post.
+func PostsEditGet(c buffalo.Context) error {
+	tx := c.Value("tx").(*pop.Connection)
+	post := &models.Post{}
+	if err := tx.Find(post, c.Param("pid")); err != nil {
+		return c.Error(404, err)
+	}
+	c.Set("post", post)
 	return c.Render(200, r.HTML("posts/edit.html"))
 }
 
-// PostsDelete default implementation.
-func PostsDelete(c buffalo.Context) error {
-	return c.Render(200, r.HTML("posts/delete.html"))
+// PostsEditPost updates a post.
+func PostsEditPost(c buffalo.Context) error {
+	tx := c.Value("tx").(*pop.Connection)
+	post := &models.Post{}
+	if err := tx.Find(post, c.Param("pid")); err != nil {
+		return c.Error(404, err)
+	}
+	if err := c.Bind(post); err != nil {
+		return errors.WithStack(err)
+	}
+	verrs, err := tx.ValidateAndUpdate(post)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	if verrs.HasAny() {
+		c.Set("post", post)
+		c.Set("errors", verrs.Errors)
+		return c.Render(422, r.HTML("posts/edit.html"))
+	}
+	c.Flash().Add("success", "Post was updated successfully.")
+	return c.Redirect(302, "/posts/detail%s", post.ID)
 }
 
-// PostsDetail default implementation.
+func PostsDelete(c buffalo.Context) error {
+	tx := c.Value("tx").(*pop.Connection)
+	post := &models.Post{}
+	if err := tx.Find(post, c.Param("pid")); err != nil {
+		return c.Error(404, err)
+	}
+	if err := tx.Destroy(post); err != nil {
+		return errors.WithStack(err)
+	}
+	c.Flash().Add("success", "Post was successfully deleted.")
+	return c.Redirect(302, "posts/index")
+}
+
+// PostsDetail displays a single post.
 func PostsDetail(c buffalo.Context) error {
 	tx := c.Value("tx").(*pop.Connection)
 	post := &models.Post{}
@@ -80,5 +117,19 @@ func PostsDetail(c buffalo.Context) error {
 	}
 	c.Set("post", post)
 	c.Set("author", author)
-	return c.Render(200, r.HTML("posts/detail.html"))
+	comment := &models.Comment{}
+	c.Set("comment", comment)
+	comments := models.Comments{}
+	if err := tx.BelongsTo(post).All(&comments); err != nil {
+		return errors.WithStack(err)
+	}
+	for i := 0; i < len(comments); i++ {
+		u := models.User{}
+		if err := tx.Find(&u, comments[i].AuthorID); err != nil {
+			return c.Error(404, err)
+		}
+		comments[i].Author = u
+	}
+	c.Set("comments", comments)
+	return c.Render(200, r.HTML("posts/detail"))
 }

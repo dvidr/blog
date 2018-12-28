@@ -2,8 +2,9 @@ package models
 
 import (
 	"time"
-	"github.com/gobuffalo/uuid"
+
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/gobuffalo/validate/validators"
 )
@@ -22,7 +23,7 @@ type Posts []Post
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 func (p *Post) Validate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.Validate(
-		& validators.StringIsPresent{Field: p.Title, Name: "Title"},
-		& validators.StringIsPresent{Field: p.Content, Name: "Content"},
+		&validators.StringIsPresent{Field: p.Title, Name: "Title"},
+		&validators.StringIsPresent{Field: p.Content, Name: "Content"},
 	), nil
 }
