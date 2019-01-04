@@ -120,14 +120,14 @@ func (u *User) Authorize(tx *pop.Connection) error {
 	if err != nil {
 		if errors.Cause(err) == sql.ErrNoRows {
 			// couldn't find a user with that email address.
-			return errors.New("User not found.")
+			return errors.New("user not found")
 		}
 		return errors.WithStack(err)
 	}
 	// confirm that the given password matches the hashed password
 	err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(u.Password))
 	if err != nil {
-		return errors.New("Invalid password.")
+		return errors.New("invalid password")
 	}
 	return nil
 }
